@@ -1,4 +1,3 @@
-from io import StringIO
 import smtplib 
 from email.message import EmailMessage
 import ssl
@@ -37,7 +36,7 @@ def open_popup(type):
         top.title('Email history popup')
         var = tk.StringVar()
         val = ''
-        headings_txt = 'sender\treceiver\tport_num\tserver_name\tsubject\tsent_date\tsent_time\n\n'
+        headings_txt = 'sender\ receiver\t port_num\t server_name\t subject\t sent_date\t sent_time\n\n'
         headings = tk.Label(top, text=headings_txt, font= ('arial 18'))
         
         label = tk.Label(top, textvariable=var, fg='#03324f', font=('helvetica 12'))
@@ -55,7 +54,7 @@ def open_popup(type):
 def store():
     global sender, receiver, port, server_name, subject, content, cdate, ctime
     try:
-        con = myc.connect(host='localhost', user='root', password='mxs4yaM@40vz', database='pydb')
+        con = myc.connect(host='localhost', user='root', password='Your password', database='pydb')
         cur = con.cursor()
         sql = "INSERT INTO emailDB (sender, receiver, port_num, server_name, subject, content, sent_date, sent_time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
 
@@ -69,7 +68,7 @@ def store():
 def history() :
     global ret
     try:
-        con = myc.connect(host='localhost', user='root', password='mxs4yaM@40vz', database='pydb')
+        con = myc.connect(host='localhost', user='root', password='Your Password', database='pydb')
         cur = con.cursor()
         sql = "SELECT sender, receiver, port_num, server_name, subject, sent_date, sent_time FROM emailDB ORDER BY sent_date DESC;"
         cur.execute(sql)
@@ -189,5 +188,3 @@ window.bind('<Shift-Return>', event)
 window.bind('<Control-n>', event)
 window.mainloop()
 
-""" preethamdarshu4411@gmail.comdabcdaga4@gmail.com """
-""" This mail is sent from Preetham\'s laptop to test the \"sendEmail.py\" program which is developed in VS Code.\nPort number: 465\nThis mail is encrypted using standard  SSL encryption. """
