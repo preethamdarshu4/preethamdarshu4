@@ -6,10 +6,10 @@ import timer
 import mysql.connector as myc
 import re
 import datetime
+import pandas as pd
 
 sender = receiver = port = server_name = subject = content =  cdate = ctime =  ''
 valid = 0
-ret = [[]]
 
 def new(type):
     if type == 0:
@@ -22,33 +22,27 @@ def new(type):
         body.delete('1.0', tk.END)
 
 
-def open_popup(type):
-    if type == 0:
+def open_popup(data):
+    if data == 0:
         top = tk.Toplevel(window)
         top.geometry('750x250')
         top.title('Email delivery popup')
         tk.Label(top, text='Email successfully delivered :)', font=('helvetica 15'), fg='33652a')
     
-    elif  type == 1:
-        global ret 
+    elif  isinstance(data, dict):
         top = tk.Toplevel(window)
         top.geometry('950x250')
         top.title('Email history popup')
         var = tk.StringVar()
-        val = ''
-        headings_txt = 'sender\ receiver\t port_num\t server_name\t subject\t sent_date\t sent_time\n\n'
-        headings = tk.Label(top, text=headings_txt, font= ('arial 18'))
+        headings_txt = 'In the order of: sender - receiver - port_num - server_name - subject - sent_date - sent_time\n\n'
+        headings = tk.Label(top, text=headings_txt, font= ('arial 18'), justify='left')
         
-        label = tk.Label(top, textvariable=var, fg='#03324f', font=('helvetica 12'))
-        for lst in ret:
-            for ele in lst:
-                val += str(ele) + '\t'
-            val += '\n'
-            var.set(val)
-            val = ''
+        label = tk.Label(top, textvariable=var, fg='#03324f', font=('helvetica 12'), justify='left')
+        df = pd.DataFrame(data)
+        var.set(df)
         
-        headings.grid(row=0, pady=5)
-        label.grid(row=1)
+        headings.grid(row=0, pady=5, sticky='w')
+        label.grid(row=1, sticky='w')
 
         
 def store():
@@ -66,18 +60,17 @@ def store():
         op_lbl.config(fg='red')
 
 def history() :
-    global ret
     try:
-        con = myc.connect(host='localhost', user='root', password='Your Password', database='pydb')
+        con = myc.connect(host='localhost', user='root', password='Your password', database='pydb')
         cur = con.cursor()
         sql = "SELECT sender, receiver, port_num, server_name, subject, sent_date, sent_time FROM emailDB ORDER BY sent_date DESC;"
         cur.execute(sql)
-        res = cur.fetchone()
-        for ind, entry in enumerate(res):
-            entry_list = list(entry)
-            for item in entry_list:
-                ret[ind].append(item)
-        open_popup(1)
+        res = cur.fetchall()
+        ret = {'Sender': [], 'Receiver': [], 'Port num':[], 'Server name':[], 'Subject':[], 'Sent date': [], 'Sent time': []}
+        for entry in res:
+            for item, ind in zip(entry, ret):
+                ret[ind].append(str(item))
+        open_popup(ret)
     except Exception as histE:
         op_lbl['text'] = 'Hist-DB: '+str(histE)
         op_lbl.config(fg='red')
@@ -148,7 +141,7 @@ window.title('Email Sender GUI')
 
 options_frame = tk.Frame(window, relief=tk.RAISED, borderwidth=2)
 options_frame.grid(row=0, rowspan=4, column=0, sticky='ns')
-new_mail_btn = tk.Button(options_frame, text='New mail', font= ('Arial', 10), command=new)
+new_mail_btn = tk.Button(options_frame, text='New mail', font= ('Arial', 10), command= lambda :new(1))
 new_mail_btn.grid(row=0, column=0, padx=10, pady=5, ipadx=15, ipady=2, sticky='ew')
 history_btn = tk.Button(options_frame, text='Mail history', font= ('Arial', 10), command=history)
 history_btn.grid(row=1, column=0, padx=10, ipadx=15, ipady=2, sticky='ew')
@@ -187,4 +180,3 @@ op_lbl.grid(row=3, column=1, columnspan=2, padx=10, sticky='ew')
 window.bind('<Shift-Return>', event)
 window.bind('<Control-n>', event)
 window.mainloop()
-
